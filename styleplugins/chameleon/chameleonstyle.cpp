@@ -299,13 +299,18 @@ void ChameleonStyle::drawPrimitive(QStyle::PrimitiveElement pe, const QStyleOpti
         // 此处设置painter的行为不应该影响外面的绘制，会导致lineedit光标不对 Bug-20967。
         p->save();
 
-        bool isTransBg = false;
+        bool transProp = false;
+        bool transAttr = false;
         if (w) {
-            isTransBg = w->topLevelWidget()->testAttribute(Qt::WA_TranslucentBackground) ||
-                    w->property("_d_dtk_lineedit_opacity").toBool();
+            auto prop = w->property("_d_dtk_lineedit_opacity");
+            transProp = prop.isValid() && prop.toBool();
+
+            if (!prop.isValid())
+                transAttr = w->window()->testAttribute(Qt::WA_TranslucentBackground);
         }
 
-        if (isTransBg)
+        // property first, then test attribute
+        if (transProp || transAttr)
             p->setBrush(getThemTypeColor(QColor(0, 0, 0, 255* 0.08),
                                         QColor(255, 255, 255, 255 * 0.15)));
         else
